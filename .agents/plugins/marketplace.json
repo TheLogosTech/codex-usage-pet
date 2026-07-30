@@ -1,0 +1,20 @@
+{
+  "name": "codex-usage-pet",
+  "interface": {
+    "displayName": "Codex Usage Pet"
+  },
+  "plugins": [
+    {
+      "name": "codex-usage-pet",
+      "source": {
+        "source": "local",
+        "path": "./plugins/codex-usage-pet"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

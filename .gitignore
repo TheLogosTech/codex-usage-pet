@@ -1,0 +1,20 @@
+# Local design and reverse-engineering workspaces
+.superdesign/
+.tmp-schema/
+.tmp-ts/
+design-system/
+
+# Generated design previews kept outside the distributable plugin
+/*.png
+/*.error.txt
+
+# Local QA captures
+plugins/**/assets/.qa-*.png
+
+# Runtime and editor files
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+.vscode/
+.idea/
