@@ -55,4 +55,4 @@ For startup commands, privacy details, troubleshooting, repository layout, and d
 
 ## License
 
-[MIT](LICENSE) © 2026 于瑞涛
+[MIT](LICENSE)

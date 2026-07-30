@@ -137,4 +137,4 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\plugins\codex-usage-pe
 
 ## 许可证
 
-[MIT](LICENSE) © 2026 于瑞涛
+[MIT](LICENSE)
