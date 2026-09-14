@@ -72,7 +72,9 @@ $skillPath = Join-Path $pluginRoot 'skills\codex-usage-pet\SKILL.md'
 $skill = Get-Content -Raw -Encoding UTF8 -LiteralPath $skillPath
 Assert-Valid ($skill -match '(?s)^---\r?\n.*?name:\s*codex-usage-pet\r?\n.*?description:\s*.+?\r?\n---') 'Skill frontmatter is missing or invalid.'
 
-Add-Type -Path (Join-Path $pluginRoot 'scripts\CodexUsageClient.cs') -ReferencedAssemblies System.Web.Extensions
+Add-Type -Path @((Join-Path $pluginRoot 'scripts\CodexUsageClient.cs'), (Join-Path $repoRoot 'tests\UsageResponseTests.cs')) -ReferencedAssemblies System.Web.Extensions
 Assert-Valid ($null -ne ('CodexUsagePet.CodexAppServerClient' -as [type])) 'C# usage client did not compile.'
+[UsageResponseTests]::Run()
+Write-Output 'Usage response unit tests passed.'
 
 Write-Output 'Plugin validation passed.'

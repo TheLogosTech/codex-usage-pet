@@ -105,35 +105,8 @@ namespace CodexUsagePet
         private void OnOutputDataReceived(object sender, DataReceivedEventArgs args)
         {
             string line = args.Data;
-            if (String.IsNullOrWhiteSpace(line)) return;
-
-            IDictionary<string, object> message;
-            try
-            {
-                message = new JavaScriptSerializer().DeserializeObject(line) as IDictionary<string, object>;
-            }
-            catch (ArgumentException)
-            {
-                SetError("Invalid JSON received from Codex app-server.");
-                return;
-            }
-
-            if (message == null) return;
-            object value;
-            if (message.TryGetValue("error", out value))
-            {
-                var error = value as IDictionary<string, object>;
-                object detail;
-                SetError(error != null && error.TryGetValue("message", out detail)
-                    ? Convert.ToString(detail)
-                    : "Codex app-server returned an RPC error.");
-                return;
-            }
-
-            var result = message.TryGetValue("result", out value)
-                ? value as IDictionary<string, object> : null;
-            if (result != null && result.TryGetValue("rateLimits", out value)
-                && value is IDictionary<string, object>)
+            string error;
+            if (TryParseUsageResponse(line, out error))
             {
                 lock (sync)
                 {
@@ -142,6 +115,45 @@ namespace CodexUsagePet
                 }
                 Interlocked.Increment(ref revision);
             }
+            else if (error != null)
+            {
+                SetError(error);
+            }
+        }
+
+        // Unrelated messages return false without an error; no process or account is needed.
+        internal static bool TryParseUsageResponse(string line, out string errorMessage)
+        {
+            errorMessage = null;
+            if (String.IsNullOrWhiteSpace(line)) return false;
+
+            IDictionary<string, object> message;
+            try
+            {
+                message = new JavaScriptSerializer().DeserializeObject(line) as IDictionary<string, object>;
+            }
+            catch (ArgumentException)
+            {
+                errorMessage = "Invalid JSON received from Codex app-server.";
+                return false;
+            }
+
+            if (message == null) return false;
+            object value;
+            if (message.TryGetValue("error", out value))
+            {
+                var error = value as IDictionary<string, object>;
+                object detail;
+                errorMessage = error != null && error.TryGetValue("message", out detail)
+                    ? Convert.ToString(detail)
+                    : "Codex app-server returned an RPC error.";
+                return false;
+            }
+
+            var result = message.TryGetValue("result", out value)
+                ? value as IDictionary<string, object> : null;
+            return result != null && result.TryGetValue("rateLimits", out value)
+                && value is IDictionary<string, object>;
         }
 
         private void OnErrorDataReceived(object sender, DataReceivedEventArgs args)
