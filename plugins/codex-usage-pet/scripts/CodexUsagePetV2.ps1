@@ -11,7 +11,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 Add-Type -AssemblyName PresentationFramework, PresentationCore, WindowsBase, System.Xaml, System.Windows.Forms
-Add-Type -Path (Join-Path $PSScriptRoot 'CodexUsageClient.cs')
+Add-Type -Path (Join-Path $PSScriptRoot 'CodexUsageClient.cs') -ReferencedAssemblies System.Web.Extensions
 . (Join-Path $PSScriptRoot 'ResolveCodex.ps1')
 [CodexUsagePet.DpiAwareness]::EnablePerMonitorV2()
 

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Collections.Generic;
+using System.Web.Script.Serialization;
 using System.Text;
 using System.Threading;
 
@@ -105,7 +107,33 @@ namespace CodexUsagePet
             string line = args.Data;
             if (String.IsNullOrWhiteSpace(line)) return;
 
-            if (line.IndexOf("\"result\":{\"rateLimits\"", StringComparison.Ordinal) >= 0)
+            IDictionary<string, object> message;
+            try
+            {
+                message = new JavaScriptSerializer().DeserializeObject(line) as IDictionary<string, object>;
+            }
+            catch (ArgumentException)
+            {
+                SetError("Invalid JSON received from Codex app-server.");
+                return;
+            }
+
+            if (message == null) return;
+            object value;
+            if (message.TryGetValue("error", out value))
+            {
+                var error = value as IDictionary<string, object>;
+                object detail;
+                SetError(error != null && error.TryGetValue("message", out detail)
+                    ? Convert.ToString(detail)
+                    : "Codex app-server returned an RPC error.");
+                return;
+            }
+
+            var result = message.TryGetValue("result", out value)
+                ? value as IDictionary<string, object> : null;
+            if (result != null && result.TryGetValue("rateLimits", out value)
+                && value is IDictionary<string, object>)
             {
                 lock (sync)
                 {

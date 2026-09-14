@@ -8,7 +8,7 @@ if (-not $codexPath) {
     throw '找不到 codex.exe。请先安装或更新 Codex 桌面应用/CLI。'
 }
 
-Add-Type -Path (Join-Path $PSScriptRoot 'CodexUsageClient.cs')
+Add-Type -Path (Join-Path $PSScriptRoot 'CodexUsageClient.cs') -ReferencedAssemblies System.Web.Extensions
 $client = New-Object CodexUsagePet.CodexAppServerClient($codexPath)
 
 try {
