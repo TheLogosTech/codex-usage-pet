@@ -76,5 +76,6 @@ Add-Type -Path @((Join-Path $pluginRoot 'scripts\CodexUsageClient.cs'), (Join-Pa
 Assert-Valid ($null -ne ('CodexUsagePet.CodexAppServerClient' -as [type])) 'C# usage client did not compile.'
 [UsageResponseTests]::Run()
 Write-Output 'Usage response unit tests passed.'
+& (Join-Path $repoRoot 'tests\UsageWindowTests.ps1')
 
 Write-Output 'Plugin validation passed.'

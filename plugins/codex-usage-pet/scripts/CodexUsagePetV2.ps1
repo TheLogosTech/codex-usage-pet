@@ -29,11 +29,15 @@ $script:settings = [ordered]@{
     Left = $null
     Top = $null
     Theme = 'Owl'
+    UsageWindow = 'Minimum'
 }
 
 if (Test-Path -LiteralPath $settingsPath) {
     try {
         $saved = Get-Content -Raw -Encoding UTF8 -LiteralPath $settingsPath | ConvertFrom-Json
+        if ($saved.UsageWindow -in @('Minimum', 'FiveHour', 'Weekly')) {
+            $script:settings.UsageWindow = [string]$saved.UsageWindow
+        }
         if ($saved.Edge -in @('Top', 'Bottom', 'Left', 'Right')) { $script:settings.Edge = $saved.Edge }
         if ($null -ne $saved.Left) { $script:settings.Left = [double]$saved.Left }
         if ($null -ne $saved.Top) { $script:settings.Top = [double]$saved.Top }
@@ -424,6 +428,7 @@ $xaml = @'
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,0,8,1">
                         <TextBlock x:Name="CompactRemainingText" Text="--" Foreground="{DynamicResource TextBrush}" FontFamily="Microsoft YaHei UI" FontSize="27" FontWeight="Bold" />
                         <TextBlock x:Name="CompactPercentText" Text="%" Foreground="{DynamicResource MutedBrush}" FontFamily="Microsoft YaHei UI" FontSize="12" Margin="2,10,0,0" />
+                        <TextBlock x:Name="CompactUsageWindowText" Visibility="Collapsed" Foreground="{DynamicResource MutedBrush}" FontSize="9" VerticalAlignment="Center" Margin="4,7,0,0" />
                     </StackPanel>
                 </Grid>
             </Border>
@@ -445,6 +450,7 @@ $xaml = @'
                             <StackPanel Grid.Row="1" Orientation="Horizontal">
                                 <TextBlock x:Name="DetailRemainingText" Text="--" Foreground="{DynamicResource TextBrush}" FontFamily="Microsoft YaHei UI" FontSize="32" FontWeight="Bold" />
                                 <TextBlock Text="%" Foreground="{DynamicResource MutedBrush}" FontFamily="Microsoft YaHei UI" FontSize="14" Margin="3,12,0,0" />
+                                <TextBlock x:Name="DetailUsageWindowText" Visibility="Collapsed" Foreground="{DynamicResource MutedBrush}" FontFamily="Microsoft YaHei UI" FontSize="11" Margin="9,14,0,0" />
                                 <TextBlock x:Name="MoodText" Text="正在唤醒…" Foreground="{DynamicResource StatusBrush}" FontFamily="Microsoft YaHei UI" FontSize="11" Margin="9,14,0,0" />
                             </StackPanel>
                         </Grid>
@@ -573,7 +579,7 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 
 $names = @(
     'HiddenView', 'HiddenDragSurface', 'HiddenAvatar', 'CompactView', 'CompactDragSurface', 'CompactAvatar', 'CompactAvatarColumn',
-    'CompactRemainingText', 'CompactPercentText', 'DetailView', 'DetailHeader', 'StatusDot',
+    'CompactRemainingText', 'CompactPercentText', 'CompactUsageWindowText', 'DetailUsageWindowText', 'DetailView', 'DetailHeader', 'StatusDot',
     'ThemeButton', 'DetailAvatar', 'PlanText', 'DetailRemainingText', 'MoodText', 'FirstWindowPanel', 'FirstWindowName',
     'FirstWindowValue', 'FirstWindowProgress', 'SecondWindowPanel', 'SecondWindowName',
     'SecondWindowValue', 'SecondWindowProgress', 'ResetExactText',
@@ -584,6 +590,19 @@ $names = @(
 )
 foreach ($name in $names) {
     Set-Variable -Name $name -Value $window.FindName($name) -Scope Script
+}
+
+$usageWindowLabel = switch ($script:settings.UsageWindow) {
+    'FiveHour' { '5h' }
+    'Weekly' { '1w' }
+    default { '--' }
+}
+if ($usageWindowLabel) {
+    $CompactUsageWindowText.Text = $usageWindowLabel
+    $DetailUsageWindowText.Text = $usageWindowLabel
+    $CompactUsageWindowText.Visibility = 'Visible'
+    $DetailUsageWindowText.Visibility = 'Visible'
+    $CompactView.Width = 140
 }
 
 function New-Brush([string]$color) {
@@ -868,7 +887,14 @@ function Update-Usage($json) {
         if (-not $snapshot) { throw 'Codex 没有返回额度快照。' }
         $quotaWindows = @(@($snapshot.primary, $snapshot.secondary) | Where-Object { $_ } | Sort-Object { if ($_.windowDurationMins) { [long]$_.windowDurationMins } else { [long]::MaxValue } })
 
-        if ($quotaWindows.Count -eq 0) {
+        if ($script:settings.UsageWindow -in @('FiveHour', 'Weekly')) {
+            $duration = if ($script:settings.UsageWindow -eq 'FiveHour') { 300 } else { 10080 }
+            $limitingWindow = $quotaWindows | Where-Object { $_.windowDurationMins -eq $duration } | Select-Object -First 1
+            if ($null -eq $limitingWindow) {
+                throw ('Codex 没有返回所选额度窗口：{0}' -f $script:settings.UsageWindow)
+            }
+            $remaining = [Math]::Max(0, [Math]::Min(100, 100 - [int]$limitingWindow.usedPercent))
+        } elseif ($quotaWindows.Count -eq 0) {
             $remaining = 100; $limitingWindow = $null
         } else {
             $remainingValues = @($quotaWindows | ForEach-Object { [Math]::Max(0, [Math]::Min(100, 100 - [int]$_.usedPercent)) })
@@ -878,6 +904,9 @@ function Update-Usage($json) {
 
         $CompactRemainingText.Text = [string]$remaining
         $DetailRemainingText.Text = [string]$remaining
+        $usageWindowLabel = Get-UsageWindowLabel $limitingWindow
+        $CompactUsageWindowText.Text = $usageWindowLabel
+        $DetailUsageWindowText.Text = $usageWindowLabel
         $PlanText.Text = if ($snapshot.planType) { ([string]$snapshot.planType).ToUpperInvariant() } else { '已连接' }
         $ResetExactText.Text = Get-ResetExact $limitingWindow
         if ($snapshot.individualLimit) {
@@ -898,6 +927,14 @@ function Update-Usage($json) {
     }
 }
 
+function Get-UsageWindowLabel($quotaWindow) {
+    $minutes = [long]$quotaWindow.windowDurationMins
+    if ($minutes -eq 10080) { return '1w' }
+    if ($minutes -gt 0 -and $minutes % 60 -eq 0) { return ('{0}h' -f ($minutes / 60)) }
+    if ($minutes -gt 0) { return ('{0}m' -f $minutes) }
+    return '--'
+}
+
 function Set-LoadingState {
     $MoodText.Text = '正在刷新…'
     $MoodText.Foreground = $window.Resources['MutedBrush']
@@ -905,6 +942,8 @@ function Set-LoadingState {
 }
 
 function Set-ErrorState([string]$message) {
+    $CompactUsageWindowText.Text = '--'
+    $DetailUsageWindowText.Text = '--'
     $CompactRemainingText.Text = '--'
     $DetailRemainingText.Text = '--'
     $PlanText.Text = '离线'
