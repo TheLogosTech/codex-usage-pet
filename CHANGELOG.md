@@ -17,5 +17,5 @@ All notable changes to this project are documented here. The format follows [Kee
 - Codex plugin skill for launch, startup management, and troubleshooting
 - Repository marketplace, validation workflow, bilingual documentation, and open-source project policies
 
-[Unreleased]: https://github.com/lanyiyrt/codex-usage-pet/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/TheLogosTech/codex-usage-pet/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/lanyiyrt/codex-usage-pet/releases/tag/v0.1.0

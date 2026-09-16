@@ -1,5 +1,7 @@
 # Codex 余量宠物
 
+本分支由 **TheLogosTech** 维护，基于 [lanyiyrt/codex-usage-pet](https://github.com/lanyiyrt/codex-usage-pet)，原作者为于瑞涛。保留原始 MIT 版权和许可声明。
+
 [English](README.en.md) · [更新记录](CHANGELOG.md) · [隐私说明](PRIVACY.md)
 
 一只悬浮在 Windows 桌面的 Codex 余量宠物。它通过本机 `codex app-server` 读取当前套餐的用量窗口，把剩余百分比、重置时间和连接状态放在一个轻量、可拖动的小组件里。
@@ -36,8 +38,8 @@
 先把这个 GitHub 仓库添加为插件市场，再安装插件：
 
 ```powershell
-codex plugin marketplace add lanyiyrt/codex-usage-pet
-codex plugin add codex-usage-pet@codex-usage-pet
+codex plugin marketplace add TheLogosTech/codex-usage-pet
+codex plugin add codex-usage-pet@TheLogosTech
 ```
 
 安装完成后新建一个 Codex 任务，然后说：
@@ -49,7 +51,7 @@ codex plugin add codex-usage-pet@codex-usage-pet
 ### 直接从源码运行
 
 ```powershell
-git clone https://github.com/lanyiyrt/codex-usage-pet.git
+git clone https://github.com/TheLogosTech/codex-usage-pet.git
 cd codex-usage-pet
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\plugins\codex-usage-pet\scripts\self-test.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\plugins\codex-usage-pet\scripts\start.ps1
@@ -92,14 +94,14 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\plugins\codex-usage-pe
 刷新 GitHub 市场副本：
 
 ```powershell
-codex plugin marketplace upgrade codex-usage-pet
+codex plugin marketplace upgrade TheLogosTech
 ```
 
 卸载插件和市场：
 
 ```powershell
-codex plugin remove codex-usage-pet --marketplace codex-usage-pet
-codex plugin marketplace remove codex-usage-pet
+codex plugin remove codex-usage-pet --marketplace TheLogosTech
+codex plugin marketplace remove TheLogosTech
 ```
 
 ## 隐私与安全

@@ -444,7 +444,7 @@ $xaml = @'
                             <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                             <DockPanel Grid.Row="0" LastChildFill="False">
                                 <Ellipse x:Name="StatusDot" Width="7" Height="7" Margin="0,1,7,0" Fill="#FF7DE2C0" VerticalAlignment="Center" />
-                                <TextBlock Text="CODEX 余量" Foreground="{DynamicResource MutedBrush}" FontFamily="Microsoft YaHei UI" FontSize="11" FontWeight="SemiBold" />
+                                <TextBlock Text="Codex Usage Limit" Foreground="{DynamicResource MutedBrush}" FontFamily="Microsoft YaHei UI" FontSize="11" FontWeight="SemiBold" />
                                 <TextBlock x:Name="PlanText" Text="连接中" Foreground="{DynamicResource MutedBrush}" Opacity="0.72" FontFamily="Microsoft YaHei UI" FontSize="10" Margin="8,0,0,0" />
                             </DockPanel>
                             <StackPanel Grid.Row="1" Orientation="Horizontal">

@@ -29,7 +29,7 @@ Assert-Valid ($manifest.version -match '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*
 Assert-Valid (-not [string]::IsNullOrWhiteSpace($manifest.description)) 'Manifest description is required.'
 Assert-Valid (-not [string]::IsNullOrWhiteSpace($manifest.author.name)) 'Manifest author.name is required.'
 Assert-Valid ($manifest.skills -eq './skills/') 'Manifest skills path must be ./skills/.'
-Assert-Valid ($marketplace.name -eq 'codex-usage-pet') 'Unexpected marketplace name.'
+Assert-Valid ($marketplace.name -eq 'TheLogosTech') 'Unexpected marketplace name.'
 
 $entry = @($marketplace.plugins | Where-Object { $_.name -eq $manifest.name }) | Select-Object -First 1
 Assert-Valid ($null -ne $entry) 'Marketplace does not contain the plugin.'

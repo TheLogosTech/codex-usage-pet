@@ -1,5 +1,7 @@
 # Codex Usage Pet
 
+Maintained by **TheLogosTech**. Forked from [lanyiyrt/codex-usage-pet](https://github.com/lanyiyrt/codex-usage-pet), originally created by 于瑞涛. The original MIT copyright and license notices are preserved.
+
 [简体中文](README.md) · [Changelog](CHANGELOG.md) · [Privacy](PRIVACY.md)
 
 A lightweight Windows desktop companion that shows your remaining Codex usage. It reads the local `codex app-server`, then presents the remaining percentage, reset time, and connection state in a draggable desktop widget.
@@ -32,8 +34,8 @@ A lightweight Windows desktop companion that shows your remaining Codex usage. I
 ## Install from GitHub
 
 ```powershell
-codex plugin marketplace add lanyiyrt/codex-usage-pet
-codex plugin add codex-usage-pet@codex-usage-pet
+codex plugin marketplace add TheLogosTech/codex-usage-pet
+codex plugin add codex-usage-pet@TheLogosTech
 ```
 
 Start a new Codex task after installation and ask:
@@ -43,7 +45,7 @@ Start a new Codex task after installation and ask:
 ## Run from source
 
 ```powershell
-git clone https://github.com/lanyiyrt/codex-usage-pet.git
+git clone https://github.com/TheLogosTech/codex-usage-pet.git
 cd codex-usage-pet
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\plugins\codex-usage-pet\scripts\self-test.ps1
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\plugins\codex-usage-pet\scripts\start.ps1
