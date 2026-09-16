@@ -365,6 +365,10 @@ function Set-WindowRow($quotaWindow, $panel, $nameText, $valueText, $progress) {
     $nameText.Text = Get-WindowName $quotaWindow
     $valueText.Text = ('{0}%' -f $remaining)
     $progress.Value = $remaining
+    $state = Get-State $remaining
+    $brush = New-Brush $state[0]
+    $valueText.Foreground = $brush
+    $progress.Foreground = $brush
 }
 
 function Update-Usage($json) {
