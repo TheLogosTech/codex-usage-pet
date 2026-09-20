@@ -30,6 +30,7 @@ $script:settings = [ordered]@{
     Top = $null
     Theme = 'Owl'
     UsageWindow = 'Minimum'
+    Language = 'Auto'
 }
 
 if (Test-Path -LiteralPath $settingsPath) {
@@ -38,6 +39,7 @@ if (Test-Path -LiteralPath $settingsPath) {
         if ($saved.UsageWindow -in @('Minimum', 'FiveHour', 'Weekly')) {
             $script:settings.UsageWindow = [string]$saved.UsageWindow
         }
+        if ($saved.Language -in @('Auto', 'zh-CN', 'en-US')) { $script:settings.Language = [string]$saved.Language }
         if ($saved.Edge -in @('Top', 'Bottom', 'Left', 'Right')) { $script:settings.Edge = $saved.Edge }
         if ($null -ne $saved.Left) { $script:settings.Left = [double]$saved.Left }
         if ($null -ne $saved.Top) { $script:settings.Top = [double]$saved.Top }
@@ -46,6 +48,9 @@ if (Test-Path -LiteralPath $settingsPath) {
         }
     } catch { }
 }
+
+. (Join-Path $PSScriptRoot 'Localization.ps1')
+$script:localization = Get-PetLocalization $script:settings.Language
 
 if ($PreviewTheme -in @('Owl', 'Fox', 'MechaCat', 'CloudBunny', 'EmberDragon', 'AuroraPenguin', 'SpaceShiba', 'BambooPanda', 'PixelSlime', 'DuneElephant')) {
     $script:settings.Theme = $PreviewTheme
@@ -69,7 +74,7 @@ $names = @(
     'CompactRemainingText', 'CompactPercentText', 'CompactUsageWindowText', 'DetailUsageWindowText', 'DetailView', 'DetailHeader', 'StatusDot',
     'ThemeButton', 'DetailAvatar', 'PlanText', 'DetailRemainingText', 'MoodText', 'FirstWindowPanel', 'FirstWindowName',
     'FirstWindowValue', 'FirstWindowProgress', 'SecondWindowPanel', 'SecondWindowName',
-    'SecondWindowValue', 'SecondWindowProgress', 'ResetExactText',
+    'SecondWindowValue', 'SecondWindowProgress', 'FirstWindowResetText', 'SecondWindowResetText',
     'CreditsText', 'RefreshButton', 'CloseButton', 'ThemePickerView', 'ThemeBackButton',
     'CurrentThemeLabel', 'ThemePreviewPanel', 'ThemePreviewAvatar', 'ThemePreviewMiniAvatar',
     'ThemePreviewName', 'ThemePreviewDescription', 'ThemePreviewPercent', 'ThemePreviewCompact',
@@ -78,6 +83,9 @@ $names = @(
 foreach ($name in $names) {
     Set-Variable -Name $name -Value $window.FindName($name) -Scope Script
 }
+
+$FirstWindowResetText.Text = $script:localization.Strings.ResetTime -f '--'
+$SecondWindowResetText.Text = $FirstWindowResetText.Text
 
 $usageWindowLabel = switch ($script:settings.UsageWindow) {
     'FiveHour' { '5h' }
@@ -337,9 +345,12 @@ function Get-WindowName($quotaWindow) {
 }
 
 function Get-ResetExact($quotaWindow) {
-    if (-not $quotaWindow -or -not $quotaWindow.resetsAt) { return '重置时间：--' }
-    $reset = [DateTimeOffset]::FromUnixTimeSeconds([long]$quotaWindow.resetsAt).ToLocalTime()
-    return ('重置时间：{0}' -f $reset.ToString('M月d日 HH:mm'))
+    $value = '--'
+    if ($quotaWindow -and $quotaWindow.resetsAt) {
+        $reset = [DateTimeOffset]::FromUnixTimeSeconds([long]$quotaWindow.resetsAt).ToLocalTime()
+        $value = $reset.ToString($script:localization.Strings.ResetDateFormat, $script:localization.Culture)
+    }
+    return ($script:localization.Strings.ResetTime -f $value)
 }
 
 function Get-State([int]$remaining) {
@@ -358,13 +369,14 @@ function Set-Accent([int]$remaining) {
     $StatusDot.Fill = $brush
 }
 
-function Set-WindowRow($quotaWindow, $panel, $nameText, $valueText, $progress) {
+function Set-WindowRow($quotaWindow, $panel, $nameText, $valueText, $progress, $resetText) {
     if (-not $quotaWindow) { $panel.Visibility = 'Collapsed'; return }
     $remaining = [Math]::Max(0, [Math]::Min(100, 100 - [int]$quotaWindow.usedPercent))
     $panel.Visibility = 'Visible'
     $nameText.Text = Get-WindowName $quotaWindow
     $valueText.Text = ('{0}%' -f $remaining)
     $progress.Value = $remaining
+    $resetText.Text = Get-ResetExact $quotaWindow
     $state = Get-State $remaining
     $brush = New-Brush $state[0]
     $valueText.Foreground = $brush
@@ -399,7 +411,6 @@ function Update-Usage($json) {
         $CompactUsageWindowText.Text = $usageWindowLabel
         $DetailUsageWindowText.Text = $usageWindowLabel
         $PlanText.Text = if ($snapshot.planType) { ([string]$snapshot.planType).ToUpperInvariant() } else { '已连接' }
-        $ResetExactText.Text = Get-ResetExact $limitingWindow
         if ($snapshot.individualLimit) {
             $CreditsText.Text = ('个人限额余量 {0}%' -f [int]$snapshot.individualLimit.remainingPercent)
         } elseif ($snapshot.credits -and $snapshot.credits.hasCredits) {
@@ -408,8 +419,8 @@ function Update-Usage($json) {
             $CreditsText.Text = '套餐内额度'
         }
 
-        Set-WindowRow $quotaWindows[0] $FirstWindowPanel $FirstWindowName $FirstWindowValue $FirstWindowProgress
-        Set-WindowRow $quotaWindows[1] $SecondWindowPanel $SecondWindowName $SecondWindowValue $SecondWindowProgress
+        Set-WindowRow $quotaWindows[0] $FirstWindowPanel $FirstWindowName $FirstWindowValue $FirstWindowProgress $FirstWindowResetText
+        Set-WindowRow $quotaWindows[1] $SecondWindowPanel $SecondWindowName $SecondWindowValue $SecondWindowProgress $SecondWindowResetText
         Set-Accent $remaining
         $window.ToolTip = ('Codex 剩余 {0}%' -f $remaining)
         $script:lastSuccessfulUpdate = [DateTime]::UtcNow

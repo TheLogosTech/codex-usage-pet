@@ -399,27 +399,28 @@
                     <StackPanel>
                         <Border x:Name="FirstWindowPanel" Background="{DynamicResource SurfaceRaisedBrush}" CornerRadius="12" Padding="12,10" Margin="0,0,0,8">
                             <Grid>
-                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                                 <TextBlock x:Name="FirstWindowName" Text="周期余量" Foreground="{DynamicResource TextBrush}" FontFamily="Microsoft YaHei UI" FontSize="12" FontWeight="SemiBold" />
                                 <TextBlock x:Name="FirstWindowValue" Grid.Column="1" Text="--%" Foreground="{DynamicResource StatusBrush}" FontFamily="Microsoft YaHei UI" FontSize="12" FontWeight="Bold" />
                                 <ProgressBar x:Name="FirstWindowProgress" Grid.Row="1" Grid.ColumnSpan="2" Style="{StaticResource QuotaProgressStyle}" Margin="0,8,0,0" />
+                                <TextBlock x:Name="FirstWindowResetText" Grid.Row="2" Grid.ColumnSpan="2" Text="--" Foreground="{DynamicResource MutedBrush}" FontFamily="Microsoft YaHei UI" FontSize="10" Margin="0,6,0,0" />
                             </Grid>
                         </Border>
 
                         <Border x:Name="SecondWindowPanel" Background="{DynamicResource SurfaceRaisedBrush}" CornerRadius="12" Padding="12,10" Margin="0,0,0,8" Visibility="Collapsed">
                             <Grid>
-                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                                 <TextBlock x:Name="SecondWindowName" Text="周期余量" Foreground="{DynamicResource TextBrush}" FontFamily="Microsoft YaHei UI" FontSize="12" FontWeight="SemiBold" />
                                 <TextBlock x:Name="SecondWindowValue" Grid.Column="1" Text="--%" Foreground="{DynamicResource StatusBrush}" FontFamily="Microsoft YaHei UI" FontSize="12" FontWeight="Bold" />
                                 <ProgressBar x:Name="SecondWindowProgress" Grid.Row="1" Grid.ColumnSpan="2" Style="{StaticResource QuotaProgressStyle}" Margin="0,8,0,0" />
+                                <TextBlock x:Name="SecondWindowResetText" Grid.Row="2" Grid.ColumnSpan="2" Text="--" Foreground="{DynamicResource MutedBrush}" FontFamily="Microsoft YaHei UI" FontSize="10" Margin="0,6,0,0" />
                             </Grid>
                         </Border>
                     </StackPanel>
 
                     <DockPanel Margin="2,1,2,10">
-                        <TextBlock x:Name="ResetExactText" DockPanel.Dock="Left" Text="重置时间：--" Foreground="{DynamicResource MutedBrush}" FontFamily="Microsoft YaHei UI" FontSize="10" />
                         <TextBlock x:Name="CreditsText" Text="本地读取" Foreground="{DynamicResource MutedBrush}" Opacity="0.72" FontFamily="Microsoft YaHei UI" FontSize="10" HorizontalAlignment="Right" VerticalAlignment="Top" />
                     </DockPanel>
 

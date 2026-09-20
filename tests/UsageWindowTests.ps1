@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param()
 
 $ErrorActionPreference = 'Stop'
@@ -10,7 +10,7 @@ $ast = [System.Management.Automation.Language.Parser]::ParseFile($sourcePath, [r
 if ($parseErrors.Count) { throw 'Cannot test a script with parse errors.' }
 
 # Load the actual production functions without starting WPF or an app-server.
-foreach ($name in @('Update-Usage', 'Get-UsageWindowLabel', 'Save-Settings', 'Save-WindowPosition', 'Set-WindowRow', 'Get-WindowName', 'Get-State', 'Set-Accent')) {
+foreach ($name in @('Update-Usage', 'Get-UsageWindowLabel', 'Save-Settings', 'Save-WindowPosition', 'Set-WindowRow', 'Get-WindowName', 'Get-State', 'Set-Accent', 'Get-ResetExact')) {
     $node = $ast.Find({ param($item)
         $item -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $item.Name -eq $name
     }, $true)
@@ -30,7 +30,6 @@ function Assert-Equal($actual, $expected, [string]$name) {
 }
 
 # Only UI dependencies are stubbed; selection and settings code run unchanged.
-function Get-ResetExact($quotaWindow) { return $quotaWindow.windowDurationMins }
 function New-Brush($color) { return $color }
 function Set-ErrorState($message) {
     $CompactRemainingText.Text = '--'
@@ -39,15 +38,17 @@ function Set-ErrorState($message) {
 }
 $CompactRemainingText = @{}; $DetailRemainingText = @{}; $PlanText = @{}
 $CompactUsageWindowText = @{}; $DetailUsageWindowText = @{}
-$ResetExactText = @{}; $CreditsText = @{}; $window = @{ Resources = @{} }
+$FirstWindowResetText = @{}; $SecondWindowResetText = @{}; $CreditsText = @{}; $window = @{ Resources = @{} }
 $MoodText = @{}; $StatusDot = @{}
 $FirstWindowPanel = @{}; $FirstWindowName = @{}; $FirstWindowValue = @{}; $FirstWindowProgress = @{}
 $SecondWindowPanel = @{}; $SecondWindowName = @{}; $SecondWindowValue = @{}; $SecondWindowProgress = @{}
+. (Join-Path $repoRoot 'plugins\codex-usage-pet\scripts\Localization.ps1')
+$script:localization = Get-PetLocalization 'zh-CN'
 $script:settings = @{}
 
 foreach ($reverse in @($false, $true)) {
-    $fiveHour = @{ windowDurationMins = 300; usedPercent = 20 }
-    $weekly = @{ windowDurationMins = 10080; usedPercent = 95 }
+    $fiveHour = @{ windowDurationMins = 300; usedPercent = 20; resetsAt = 1800000000 }
+    $weekly = @{ windowDurationMins = 10080; usedPercent = 95; resetsAt = 1800500000 }
     $windows = if ($reverse) { @($weekly, $fiveHour) } else { @($fiveHour, $weekly) }
     $json = @{ result = @{ rateLimits = @{ primary = $windows[0]; secondary = $windows[1] } } } | ConvertTo-Json -Depth 6
     foreach ($case in @(@('Minimum', '5', 10080), @('FiveHour', '80', 300), @('Weekly', '5', 10080))) {
@@ -57,7 +58,8 @@ foreach ($reverse in @($false, $true)) {
         Assert-Equal $reportedError $null "$($case[0]) error"
         Assert-Equal $CompactRemainingText.Text $case[1] "$($case[0]) compact percentage"
         Assert-Equal $DetailRemainingText.Text $case[1] "$($case[0]) detail percentage"
-        Assert-Equal $ResetExactText.Text $case[2] "$($case[0]) reset window"
+        Assert-Equal $FirstWindowResetText.Text (Get-ResetExact $fiveHour) "Five-hour reset stays independent of selected window"
+        Assert-Equal $SecondWindowResetText.Text (Get-ResetExact $weekly) "Weekly reset stays independent of selected window"
         $expectedLabel = if ($case[2] -eq 300) { '5h' } else { '1w' }
         Assert-Equal $CompactUsageWindowText.Text $expectedLabel 'Compact window label'
         Assert-Equal $DetailUsageWindowText.Text $expectedLabel 'Detail window label'
@@ -76,13 +78,15 @@ Assert-Equal $DetailUsageWindowText.Text '5h' 'Detail minimum label switches to 
 Assert-Equal $FirstWindowProgress.Foreground '#FFFF6B72' 'Five-hour bar changes to red after refresh'
 Assert-Equal $SecondWindowProgress.Foreground '#FF7DE2C0' 'Weekly bar changes to green after refresh'
 
+Assert-Equal $FirstWindowResetText.Text '重置时间：--' 'Missing reset clears previous timestamp'
+
 foreach ($case in @(@(100, '#FF7DE2C0'), @(60, '#FF7DE2C0'), @(59, '#FFF5C76B'), @(30, '#FFF5C76B'), @(29, '#FFFF9B66'), @(10, '#FFFF9B66'), @(9, '#FFFF6B72'), @(0, '#FFFF6B72'))) {
-    Set-WindowRow @{ windowDurationMins = 300; usedPercent = 100 - $case[0] } $FirstWindowPanel $FirstWindowName $FirstWindowValue $FirstWindowProgress
+    Set-WindowRow @{ windowDurationMins = 300; usedPercent = 100 - $case[0] } $FirstWindowPanel $FirstWindowName $FirstWindowValue $FirstWindowProgress $FirstWindowResetText
     Assert-Equal $FirstWindowValue.Foreground $case[1] "Percentage color at $($case[0])%"
     Assert-Equal $FirstWindowProgress.Foreground $case[1] "Bar color at $($case[0])%"
     Assert-Equal $FirstWindowProgress.Value $case[0] 'Bar remaining value'
 }
-Set-WindowRow $null $SecondWindowPanel $SecondWindowName $SecondWindowValue $SecondWindowProgress
+Set-WindowRow $null $SecondWindowPanel $SecondWindowName $SecondWindowValue $SecondWindowProgress $SecondWindowResetText
 Assert-Equal $SecondWindowPanel.Visibility 'Collapsed' 'Absent quota row stays hidden'
 
 foreach ($mode in @('FiveHour', 'Weekly')) {
@@ -119,3 +123,16 @@ try {
     [IO.Directory]::Delete($settingsDirectory)
 }
 Write-Output 'Usage window selection and settings regression tests passed.'
+
+foreach ($language in @('zh-CN', 'en-US', 'fr-FR', 'Auto')) {
+    $script:localization = Get-PetLocalization $language
+    $sample = @{ resetsAt = 1800000000 }
+    $date = [DateTimeOffset]::FromUnixTimeSeconds(1800000000).ToLocalTime()
+    $isChinese = $script:localization.Culture.Name -eq 'zh-CN'
+    $label = if ($isChinese) { ([string][char]0x91cd)+[char]0x7f6e+[char]0x65f6+[char]0x95f4+[char]0xff1a } else { 'Resets: ' }
+    $format = if ($isChinese) { 'M'+[char]0x6708+'d'+[char]0x65e5+' HH:mm' } else { 'MMM d HH:mm' }
+    Assert-Equal (Get-ResetExact $sample) ($label + $date.ToString($format, $script:localization.Culture)) "$language reset translation"
+    Assert-Equal (Get-ResetExact $null) ($label + '--') "$language missing timestamp"
+    if ($language -eq 'fr-FR') { Assert-Equal $script:localization.Culture.Name 'en-US' 'Unsupported language fallback' }
+}
+Write-Output 'Reset-time localization tests passed.'
