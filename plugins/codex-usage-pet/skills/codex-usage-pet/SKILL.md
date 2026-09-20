@@ -7,6 +7,10 @@ description: Launch, theme, or troubleshoot the local Codex Usage Pet desktop wi
 
 This skill manages the Windows desktop companion bundled in this plugin.
 
+## Default action
+
+When the user mentions or invokes Codex Usage Pet without specifying an action, launch the pet immediately using the Launch procedure below. Do not ask whether to launch or troubleshoot. An explicit action such as theme, close, troubleshoot, or Windows startup takes precedence. A bare plugin mention does not enable Windows startup.
+
 ## Resolve paths
 
 The plugin root is two directories above this `SKILL.md`. Resolve it from the selected skill path; do not assume a fixed username or installation folder.
