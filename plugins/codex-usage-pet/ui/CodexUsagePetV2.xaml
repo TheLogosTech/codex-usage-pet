@@ -447,6 +447,12 @@
                                 <Ellipse Canvas.Left="12.4" Canvas.Top="5.2" Width="2.5" Height="2.5" Fill="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" />
                             </Canvas></Viewbox>
                         </Button>
+                        <Button x:Name="SettingsButton" Style="{StaticResource DetailActionButton}" ToolTip="Settings" AutomationProperties.Name="Settings">
+                            <Viewbox Width="20" Height="20"><Canvas Width="20" Height="20">
+                                <Path Data="M8,2 L12,2 L12.5,4.2 L14,5.1 L16.1,4.4 L18.1,7.8 L16.5,9.3 L16.5,10.7 L18.1,12.2 L16.1,15.6 L14,14.9 L12.5,15.8 L12,18 L8,18 L7.5,15.8 L6,14.9 L3.9,15.6 L1.9,12.2 L3.5,10.7 L3.5,9.3 L1.9,7.8 L3.9,4.4 L6,5.1 L7.5,4.2 Z" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" StrokeThickness="1.5" StrokeLineJoin="Round" />
+                                <Ellipse Canvas.Left="7" Canvas.Top="7" Width="6" Height="6" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" StrokeThickness="1.5" />
+                            </Canvas></Viewbox>
+                        </Button>
                         <Button x:Name="RefreshButton" Style="{StaticResource DetailActionButton}" ToolTip="立即刷新" AutomationProperties.Name="立即刷新 Codex 余量">
                             <Viewbox Width="20" Height="20"><Canvas Width="20" Height="20">
                                 <Path Data="M17,4 L17,9 L12,9 M3,16 L3,11 L8,11 M4.7,7.2 C6,4.8 8.4,3.3 11.2,3.3 C13.5,3.3 15.6,4.4 17,6.1 M15.3,12.8 C14,15.2 11.6,16.7 8.8,16.7 C6.5,16.7 4.4,15.6 3,13.9" Fill="Transparent" Stroke="{Binding Foreground, RelativeSource={RelativeSource AncestorType={x:Type Button}}}" StrokeThickness="1.8" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round" />

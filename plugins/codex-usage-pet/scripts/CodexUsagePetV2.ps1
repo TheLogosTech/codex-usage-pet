@@ -72,10 +72,14 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $names = @(
     'HiddenView', 'HiddenDragSurface', 'HiddenAvatar', 'CompactView', 'CompactDragSurface', 'CompactAvatar', 'CompactAvatarColumn',
     'CompactRemainingText', 'CompactPercentText', 'CompactUsageWindowText', 'DetailUsageWindowText', 'DetailView', 'DetailHeader', 'StatusDot',
-    'ThemeButton', 'DetailAvatar', 'PlanText', 'DetailRemainingText', 'MoodText', 'FirstWindowPanel', 'FirstWindowName',
-    'FirstWindowValue', 'FirstWindowProgress', 'SecondWindowPanel', 'SecondWindowName',
-    'SecondWindowValue', 'SecondWindowProgress', 'FirstWindowResetText', 'SecondWindowResetText', 'FirstWindowTimeProgress', 'SecondWindowTimeProgress', 'FirstWindowTimeText', 'SecondWindowTimeText',
-    'CreditsText', 'RefreshButton', 'CloseButton', 'ThemePickerView', 'ThemeBackButton',
+    'ThemeButton', 'DetailAvatar', 'PlanText', 'DetailRemainingText', 'MoodText',
+    'FirstWindowPanel', 'FirstWindowName', 'FirstWindowValue', 'FirstWindowProgress',
+    'SecondWindowPanel', 'SecondWindowName', 'SecondWindowValue', 'SecondWindowProgress',
+    'FirstWindowResetText', 'SecondWindowResetText',
+    'FirstWindowTimeProgress', 'SecondWindowTimeProgress',
+    'FirstWindowTimeText', 'SecondWindowTimeText',
+    'CreditsText',
+    'RefreshButton', 'CloseButton', 'ThemePickerView', 'ThemeBackButton',
     'CurrentThemeLabel', 'ThemePreviewPanel', 'ThemePreviewAvatar', 'ThemePreviewMiniAvatar',
     'ThemePreviewName', 'ThemePreviewDescription', 'ThemePreviewPercent', 'ThemePreviewCompact',
     'ThemeGrid', 'ThemeCancelButton', 'ThemeApplyButton'
