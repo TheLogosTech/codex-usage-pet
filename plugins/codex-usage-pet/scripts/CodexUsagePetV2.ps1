@@ -74,7 +74,7 @@ $names = @(
     'CompactRemainingText', 'CompactPercentText', 'CompactUsageWindowText', 'DetailUsageWindowText', 'DetailView', 'DetailHeader', 'StatusDot',
     'ThemeButton', 'DetailAvatar', 'PlanText', 'DetailRemainingText', 'MoodText', 'FirstWindowPanel', 'FirstWindowName',
     'FirstWindowValue', 'FirstWindowProgress', 'SecondWindowPanel', 'SecondWindowName',
-    'SecondWindowValue', 'SecondWindowProgress', 'FirstWindowResetText', 'SecondWindowResetText',
+    'SecondWindowValue', 'SecondWindowProgress', 'FirstWindowResetText', 'SecondWindowResetText', 'FirstWindowTimeProgress', 'SecondWindowTimeProgress', 'FirstWindowTimeText', 'SecondWindowTimeText',
     'CreditsText', 'RefreshButton', 'CloseButton', 'ThemePickerView', 'ThemeBackButton',
     'CurrentThemeLabel', 'ThemePreviewPanel', 'ThemePreviewAvatar', 'ThemePreviewMiniAvatar',
     'ThemePreviewName', 'ThemePreviewDescription', 'ThemePreviewPercent', 'ThemePreviewCompact',
@@ -369,7 +369,26 @@ function Set-Accent([int]$remaining) {
     $StatusDot.Fill = $brush
 }
 
-function Set-WindowRow($quotaWindow, $panel, $nameText, $valueText, $progress, $resetText) {
+function Get-TimeRemainingPercent($quotaWindow, [long]$now = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()) {
+    if (-not $quotaWindow -or -not $quotaWindow.resetsAt -or $quotaWindow.windowDurationMins -le 0) { return $null }
+    return [Math]::Max(0, [Math]::Min(100, 100.0 * ([long]$quotaWindow.resetsAt - $now) / (60.0 * $quotaWindow.windowDurationMins)))
+}
+
+function Update-TimeBar($quotaWindow, $bar, $label) {
+    $percent = Get-TimeRemainingPercent $quotaWindow
+    $bar.Value = if ($null -eq $percent) { 0 } else { $percent }
+    $value = '--'
+    if ($null -ne $percent) {
+        $minutes = [long][Math]::Ceiling([Math]::Max(0, [long]$quotaWindow.resetsAt - [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()) / 60.0)
+        $days = [long][Math]::Floor($minutes / 1440.0)
+        $hours = [long][Math]::Floor(($minutes % 1440) / 60.0)
+        $value = $script:localization.Strings.RemainingDuration -f $days, $hours, ($minutes % 60)
+    }
+    $label.Text = $script:localization.Strings.TimeRemaining -f $value
+    $bar.ToolTip = $label.Text
+}
+function Set-WindowRow($quotaWindow, $panel, $nameText, $valueText, $progress, $resetText, $timeProgress, $timeText) {
+    if ($timeProgress) { $timeProgress.Tag = $quotaWindow; Update-TimeBar $quotaWindow $timeProgress $timeText }
     if (-not $quotaWindow) { $panel.Visibility = 'Collapsed'; return }
     $remaining = [Math]::Max(0, [Math]::Min(100, 100 - [int]$quotaWindow.usedPercent))
     $panel.Visibility = 'Visible'
@@ -419,8 +438,8 @@ function Update-Usage($json) {
             $CreditsText.Text = '套餐内额度'
         }
 
-        Set-WindowRow $quotaWindows[0] $FirstWindowPanel $FirstWindowName $FirstWindowValue $FirstWindowProgress $FirstWindowResetText
-        Set-WindowRow $quotaWindows[1] $SecondWindowPanel $SecondWindowName $SecondWindowValue $SecondWindowProgress $SecondWindowResetText
+        Set-WindowRow $quotaWindows[0] $FirstWindowPanel $FirstWindowName $FirstWindowValue $FirstWindowProgress $FirstWindowResetText $FirstWindowTimeProgress $FirstWindowTimeText
+        Set-WindowRow $quotaWindows[1] $SecondWindowPanel $SecondWindowName $SecondWindowValue $SecondWindowProgress $SecondWindowResetText $SecondWindowTimeProgress $SecondWindowTimeText
         Set-Accent $remaining
         $window.ToolTip = ('Codex 剩余 {0}%' -f $remaining)
         $script:lastSuccessfulUpdate = [DateTime]::UtcNow
@@ -558,6 +577,12 @@ $window.add_KeyDown({
 $timer = New-Object Windows.Threading.DispatcherTimer
 $timer.Interval = [TimeSpan]::FromMilliseconds(250)
 $timer.add_Tick({
+    $nowSecond = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds()
+    if ($nowSecond -ne $script:lastTimeBarSecond) {
+        $script:lastTimeBarSecond = $nowSecond
+        Update-TimeBar $FirstWindowTimeProgress.Tag $FirstWindowTimeProgress $FirstWindowTimeText
+        Update-TimeBar $SecondWindowTimeProgress.Tag $SecondWindowTimeProgress $SecondWindowTimeText
+    }
     if ($client.Revision -ne $script:lastRevision) {
         $script:lastRevision = $client.Revision
         if ($client.LatestJson) {

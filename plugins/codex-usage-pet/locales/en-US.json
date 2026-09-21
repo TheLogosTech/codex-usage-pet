@@ -1,1 +1,6 @@
-{"ResetTime":"Resets: {0}","ResetDateFormat":"MMM d HH:mm"}
+{
+    "ResetTime":  "Resets: {0}",
+    "ResetDateFormat":  "MMM d HH:mm",
+    "TimeRemaining":  "Time until reset: {0}",
+    "RemainingDuration":  "{0}d {1}h {2}m"
+}

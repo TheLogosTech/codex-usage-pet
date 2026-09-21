@@ -10,7 +10,7 @@ $ast = [System.Management.Automation.Language.Parser]::ParseFile($sourcePath, [r
 if ($parseErrors.Count) { throw 'Cannot test a script with parse errors.' }
 
 # Load the actual production functions without starting WPF or an app-server.
-foreach ($name in @('Update-Usage', 'Get-UsageWindowLabel', 'Save-Settings', 'Save-WindowPosition', 'Set-WindowRow', 'Get-WindowName', 'Get-State', 'Set-Accent', 'Get-ResetExact')) {
+foreach ($name in @('Update-Usage', 'Get-UsageWindowLabel', 'Save-Settings', 'Save-WindowPosition', 'Set-WindowRow', 'Get-WindowName', 'Get-State', 'Set-Accent', 'Get-ResetExact', 'Get-TimeRemainingPercent', 'Update-TimeBar')) {
     $node = $ast.Find({ param($item)
         $item -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $item.Name -eq $name
     }, $true)
@@ -136,3 +136,16 @@ foreach ($language in @('zh-CN', 'en-US', 'fr-FR', 'Auto')) {
     if ($language -eq 'fr-FR') { Assert-Equal $script:localization.Culture.Name 'en-US' 'Unsupported language fallback' }
 }
 Write-Output 'Reset-time localization tests passed.'
+$now = 1800000000
+Assert-Equal (Get-TimeRemainingPercent @{ resetsAt = $now + 9000; windowDurationMins = 300 } $now) 50 'Five-hour half remaining'
+Assert-Equal (Get-TimeRemainingPercent @{ resetsAt = $now + 302400; windowDurationMins = 10080 } $now) 50 'Weekly half remaining'
+Assert-Equal (Get-TimeRemainingPercent @{ resetsAt = $now - 1; windowDurationMins = 300 } $now) 0 'Expired window'
+Assert-Equal (Get-TimeRemainingPercent @{ resetsAt = $now + 99999; windowDurationMins = 300 } $now) 100 'Clamped remaining time'
+Assert-Equal (Get-TimeRemainingPercent @{ resetsAt = $now; windowDurationMins = 0 } $now) $null 'Invalid duration'
+$bar = @{}; $label = @{}
+Update-TimeBar @{ resetsAt = [DateTimeOffset]::UtcNow.ToUnixTimeSeconds() - 1; windowDurationMins = 300 } $bar $label
+Assert-Equal $bar.Value 0 'Expired bar empty'
+Update-TimeBar $null $bar $label
+Assert-Equal $bar.Value 0 'Missing reset clears bar'
+Assert-Equal $label.Text ($script:localization.Strings.TimeRemaining -f '--') 'Missing reset placeholder'
+Write-Output 'Time remaining bar tests passed.'
