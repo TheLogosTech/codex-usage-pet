@@ -20,7 +20,7 @@
   "interface": {
     "displayName": "Codex Usage Pet",
     "shortDescription": "Keep track of your remaining Codex usage with 10 pet themes.",
-    "longDescription": "Your selected theme appears in the edge avatar, compact usage view, and full details view. The details view includes theme, refresh, and power buttons; the pet avatar is decorative. Choose from 10 pet themes using the theme button. Drag the compact or details view near any screen edge to tuck it away as a small avatar. Usage data is read through the local Codex app-server. The pet does not access auth.json or upload data to third parties.",
+    "longDescription": "Your selected theme appears in the edge avatar, compact usage view, and full details view. The details view includes theme, settings, refresh, and power buttons; the pet avatar is decorative. The settings gear selects the main remaining percentage: lowest remaining (default), 5-hour, or weekly. Apply saves the choice and updates the display; Cancel, Back, or Escape discards unapplied changes. Choose from 10 pet themes using the theme button. Drag the compact or details view near any screen edge to tuck it away as a small avatar. Usage data is read through the local Codex app-server. The pet does not access auth.json or upload data to third parties.",
     "developerName": "TheLogosTech",
     "category": "Productivity",
     "capabilities": [

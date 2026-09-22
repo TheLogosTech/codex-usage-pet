@@ -31,7 +31,7 @@ The app uses a single-instance mutex, so repeated launch requests safely keep th
 
 The compact view has a fixed small size and intentionally shows only the mascot and remaining percentage. Clicking it opens details. Dragging the compact or detail view within 30 pixels of any screen edge hides it as a small edge avatar; clicking or dragging that avatar toward the desktop restores the compact view.
 
-The detail card has three icon-only action buttons: palette opens the theme picker, rotate-cw refreshes usage, and power exits the widget. The mascot itself is display-only. The picker includes ten mascots: Owl, Fox, Mecha Cat, Cloud Bunny, Ember Dragon, Aurora Penguin, Space Shiba, Bamboo Panda, Pixel Slime, and Dune Elephant. Applying a theme updates the edge, compact, and detail states and persists the choice in `%LOCALAPPDATA%\CodexUsagePet\settings.json`.
+The detail card has four icon-only action buttons, in order: palette opens the theme picker, gear opens Settings, rotate-cw refreshes usage, and power exits the widget. Settings selects the remaining percentage shown as the main number in compact and detail views: lowest remaining (default), 5-hour, or weekly. Apply saves the selection and updates the display from the latest available quota data. Cancel, Back, or Escape discards unapplied changes. The selection persists as UsageWindow in `%LOCALAPPDATA%\CodexUsagePet\settings.json`. The mascot itself is display-only. The picker includes ten mascots: Owl, Fox, Mecha Cat, Cloud Bunny, Ember Dragon, Aurora Penguin, Space Shiba, Bamboo Panda, Pixel Slime, and Dune Elephant. Applying a theme updates the edge, compact, and detail states and persists the choice in `%LOCALAPPDATA%\CodexUsagePet\settings.json`.
 
 ## Start with Windows
 
