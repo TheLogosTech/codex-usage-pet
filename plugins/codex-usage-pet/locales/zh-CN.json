@@ -2,5 +2,12 @@
     "ResetTime":  "重置时间：{0}",
     "ResetDateFormat":  "M月d日 HH:mm",
     "TimeRemaining":  "距重置剩余：{0}",
-    "RemainingDuration":  "{0}天 {1}小时 {2}分钟"
+    "RemainingDuration":  "{0}天 {1}小时 {2}分钟",
+    "SettingsTitle":  "设置",
+    "DisplayPercentage":  "余量显示主数字",
+    "LowestRemaining":  "最低余量（默认）",
+    "FiveHourRemaining":  "5小时余量",
+    "WeeklyRemaining":  "每周余量",
+    "Cancel":  "取消",
+    "Apply":  "应用"
 }

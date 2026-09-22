@@ -2,5 +2,12 @@
     "ResetTime":  "Resets: {0}",
     "ResetDateFormat":  "MMM d HH:mm",
     "TimeRemaining":  "Time until reset: {0}",
-    "RemainingDuration":  "{0}d {1}h {2}m"
+    "RemainingDuration":  "{0}d {1}h {2}m",
+    "SettingsTitle":  "Settings",
+    "DisplayPercentage":  "Percentage shown as the main remaining number",
+    "LowestRemaining":  "Lowest remaining (default)",
+    "FiveHourRemaining":  "5 hour remaining",
+    "WeeklyRemaining":  "Weekly remaining",
+    "Cancel":  "Cancel",
+    "Apply":  "Apply"
 }

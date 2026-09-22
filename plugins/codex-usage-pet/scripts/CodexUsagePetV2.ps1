@@ -3,7 +3,7 @@ param(
     [ValidateRange(30, 3600)]
     [int]$RefreshSeconds = 120,
     [string]$PreviewPath,
-    [ValidateSet('Hidden', 'Compact', 'Detail', 'ThemePicker')]
+    [ValidateSet('Hidden', 'Compact', 'Detail', 'ThemePicker', 'Settings')]
     [string]$PreviewState = 'Detail',
     [string]$PreviewTheme
 )
@@ -72,6 +72,9 @@ $window = [Windows.Markup.XamlReader]::Load($reader)
 $names = @(
     'HiddenView', 'HiddenDragSurface', 'HiddenAvatar', 'CompactView', 'CompactDragSurface', 'CompactAvatar', 'CompactAvatarColumn',
     'CompactRemainingText', 'CompactPercentText', 'CompactUsageWindowText', 'DetailUsageWindowText', 'DetailView', 'DetailHeader', 'StatusDot',
+    'SettingsButton', 'SettingsView', 'SettingsTitle', 'SettingsPercentageLabel',
+    'SettingsMinimum', 'SettingsFiveHour', 'SettingsWeekly',
+    'SettingsBackButton', 'SettingsCancelButton', 'SettingsApplyButton',
     'ThemeButton', 'DetailAvatar', 'PlanText', 'DetailRemainingText', 'MoodText',
     'FirstWindowPanel', 'FirstWindowName', 'FirstWindowValue', 'FirstWindowProgress',
     'SecondWindowPanel', 'SecondWindowName', 'SecondWindowValue', 'SecondWindowProgress',
@@ -261,7 +264,7 @@ $script:viewState = 'Compact'
 $script:hiddenEdge = $script:settings.Edge
 $script:lastInteractionAt = [DateTime]::UtcNow
 
-function Set-ViewState([ValidateSet('Hidden', 'Compact', 'Detail', 'ThemePicker')]$state, [bool]$fromHiddenDrag = $false) {
+function Set-ViewState([ValidateSet('Hidden', 'Compact', 'Detail', 'ThemePicker', 'Settings')]$state, [bool]$fromHiddenDrag = $false) {
     $oldWidth = Get-ActualWidth
     $oldHeight = Get-ActualHeight
     $centerX = $window.Left + ($oldWidth / 2)
@@ -269,6 +272,8 @@ function Set-ViewState([ValidateSet('Hidden', 'Compact', 'Detail', 'ThemePicker'
     $previous = $script:viewState
 
     if ($state -eq 'ThemePicker') { Ensure-ThemePicker }
+    if ($state -eq 'Settings') { Initialize-SettingsView }
+    $SettingsView.Visibility = if ($state -eq 'Settings') { 'Visible' } else { 'Collapsed' }
     $HiddenView.Visibility = if ($state -eq 'Hidden') { 'Visible' } else { 'Collapsed' }
     $CompactView.Visibility = if ($state -eq 'Compact') { 'Visible' } else { 'Collapsed' }
     $DetailView.Visibility = if ($state -eq 'Detail') { 'Visible' } else { 'Collapsed' }
@@ -305,6 +310,33 @@ function Set-ViewState([ValidateSet('Hidden', 'Compact', 'Detail', 'ThemePicker'
     $script:lastInteractionAt = [DateTime]::UtcNow
 }
 
+function Initialize-SettingsView {
+    $SettingsTitle.Text = $script:localization.Strings.SettingsTitle
+    $SettingsPercentageLabel.Text = $script:localization.Strings.DisplayPercentage
+    $SettingsMinimum.Content = $script:localization.Strings.LowestRemaining
+    $SettingsFiveHour.Content = $script:localization.Strings.FiveHourRemaining
+    $SettingsWeekly.Content = $script:localization.Strings.WeeklyRemaining
+    $SettingsCancelButton.Content = $script:localization.Strings.Cancel
+    $SettingsApplyButton.Content = $script:localization.Strings.Apply
+    $SettingsBackButton.ToolTip = $script:localization.Strings.Cancel
+    [Windows.Automation.AutomationProperties]::SetName($SettingsBackButton, $script:localization.Strings.Cancel)
+    foreach ($option in @($SettingsMinimum, $SettingsFiveHour, $SettingsWeekly)) {
+        $option.IsChecked = $option.Tag -eq $script:settings.UsageWindow
+    }
+}
+
+function Close-SettingsView([bool]$apply) {
+    if ($apply) {
+        $selected = @($SettingsMinimum, $SettingsFiveHour, $SettingsWeekly) | Where-Object { $_.IsChecked } | Select-Object -First 1
+        if ($selected -and $selected.Tag -in @('Minimum', 'FiveHour', 'Weekly')) {
+            $script:settings.UsageWindow = [string]$selected.Tag
+            Save-Settings
+            if ($client.LatestJson) { Update-Usage $client.LatestJson }
+            else { Set-LoadingState }
+        }
+    }
+    Set-ViewState 'Detail'
+}
 function Show-ThemePicker {
     Ensure-ThemePicker
     Set-ViewState 'ThemePicker'
@@ -553,6 +585,11 @@ $DetailHeader.add_MouseLeftButtonDown({
     if ($eventArgs.ChangedButton -eq [System.Windows.Input.MouseButton]::Left) { Invoke-StandardDrag 'Detail' }
 })
 
+$SettingsButton.ToolTip = $script:localization.Strings.SettingsTitle
+$SettingsButton.add_Click({ Set-ViewState 'Settings' })
+$SettingsBackButton.add_Click({ Close-SettingsView $false })
+$SettingsCancelButton.add_Click({ Close-SettingsView $false })
+$SettingsApplyButton.add_Click({ Close-SettingsView $true })
 $ThemeButton.add_Click({ Show-ThemePicker })
 $ThemeBackButton.add_Click({ Close-ThemePicker $false })
 $ThemeCancelButton.add_Click({ Close-ThemePicker $false })
@@ -563,7 +600,8 @@ $CloseButton.add_Click({ $window.Close() })
 $window.add_KeyDown({
     param($sender, $eventArgs)
     if ($eventArgs.Key -eq [System.Windows.Input.Key]::Escape) {
-        if ($script:viewState -eq 'ThemePicker') { Close-ThemePicker $false }
+        if ($script:viewState -eq 'Settings') { Close-SettingsView $false }
+        elseif ($script:viewState -eq 'ThemePicker') { Close-ThemePicker $false }
         elseif ($script:viewState -eq 'Detail') { Set-ViewState 'Compact' }
         else { Hide-ToEdge $script:hiddenEdge }
         $eventArgs.Handled = $true
