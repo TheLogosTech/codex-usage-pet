@@ -19,13 +19,15 @@ The plugin root is two directories above this `SKILL.md`. Resolve it from the se
 
 For requests such as “启动余量宠物”, “显示 Codex 余量”, or “打开 quota pet”:
 
-1. Run `<plugin-root>\scripts\start.ps1` with Windows PowerShell:
+1. Run `<plugin-root>\scripts\start.ps1` with Windows PowerShell on the user's interactive desktop. In Codex's Windows sandbox, use the normal approved `require_escalated` execution route for this GUI launch; never bypass a denial or alter sandbox settings:
 
    ```powershell
    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "<plugin-root>\scripts\start.ps1"
    ```
 
-2. Tell the user the pet is running. Do not read `auth.json`; the pet talks only to `codex app-server`.
+2. Report success only when the launcher returns `Verified pet window`. It checks the exact pet script's process and enumerates its visible, non-minimized WPF windows intersecting a display. A launcher exit code, arbitrary PowerShell window, or `MainWindowHandle` alone is not proof. If inspection is denied, report that visibility remains unverified and use approved desktop execution. Do not read `auth.json`; the pet talks only to `codex app-server`.
+
+3. If the user cannot see the pet, inspect the verified process-owned WPF window and bring it to the primary screen center. Do not claim to have visually seen it based solely on Windows visibility flags. If no pet window exists, investigate the exact pet process before restarting only that instance; never kill all PowerShell processes. Do not refresh the plugin cache or poll quota just to launch the UI.
 
 The app uses a single-instance mutex, so repeated launch requests safely keep the existing pet instead of creating duplicates.
 

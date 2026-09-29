@@ -1,6 +1,6 @@
 {
   "name": "codex-usage-pet",
-  "version": "0.1.0",
+  "version": "0.1.0+codex.20260929051847",
   "description": "A local-first Windows desktop pet that displays remaining Codex usage.",
   "author": {
     "name": "TheLogosTech",
